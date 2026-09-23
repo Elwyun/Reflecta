@@ -82,6 +82,10 @@ js/app.js           — pengendali UI
 tests/              — unit test rumus skoring
 ```
 
+## 📄 Lisensi
+
+Dirilis di bawah [MIT License](LICENSE).
+
 ## 🧩 Catatan desain & batasan
 
 - **Validitas bahasa**: butir diterjemahkan ke Bahasa Indonesia secara bermakna; untuk penggunaan
@@ -90,3 +94,5 @@ tests/              — unit test rumus skoring
   audit trail. Jangan dipakai sebagai satu-satunya dasar keputusan kesehatan.
 - **LLM**: keluaran model bisa keliru; prompt sistem membatasi peran model ke pendamping
   refleksi, dan UI selalu menampilkan disclaimer.
+- **Instrumen skrining**: WHO-5, PSS-10, DASS-21, GAD-7, PHQ-9 memiliki pemegang hak cipta
+  masing-masing; lisensi MIT ini mencakup *kode* proyek, bukan butir instrumen tersebut.
