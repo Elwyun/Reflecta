@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reflecta — Cek Kesehatan Mental &amp; Tingkat Stres</title>
+  <meta name="description" content="Skrining kesehatan mental berbasis instrumen tervalidasi: WHO-5, PSS-10, DASS-21, GAD-7, PHQ-9. Bukan diagnosis. Untuk edukasi dan refleksi diri." />
+
+  <!-- Tailwind (CDN). Untuk produksi, ganti dengan build lokal. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts: Plus Jakarta Sans (display) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.12);
+      --text: #e7ecff;
+      --muted: #8b93b8;
+      --brand: #7c9cff;
+      --brand-2: #b78cff;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --alert: #f87171;
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1,h2,h3,.font-display { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+
+    /* Aurora background */
+    .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+    .aurora span { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; animation: drift 26s ease-in-out infinite alternate; }
+    .aurora span:nth-child(1) { width: 55vw; height: 55vw; left: -12vw; top: -18vw; background: radial-gradient(circle, #4f46e5, transparent 65%); }
+    .aurora span:nth-child(2) { width: 48vw; height: 48vw; right: -14vw; top: 8vh; background: radial-gradient(circle, #9333ea, transparent 65%); animation-delay: -8s; }
+    .aurora span:nth-child(3) { width: 42vw; height: 42vw; left: 24vw; bottom: -22vw; background: radial-gradient(circle, #0ea5e9, transparent 65%); animation-delay: -16s; }
+    @keyframes drift { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(4vw,3vh,0) scale(1.12); } }
+
+    .glass { background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+    .brand-gradient { background: linear-gradient(120deg, var(--brand), var(--brand-2)); }
+    .brand-text { background: linear-gradient(120deg, #9db4ff, #d0b3ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    .btn-primary { background: linear-gradient(120deg, #6d8cff, #a97bff); color: #0b1020; font-weight: 700; border-radius: 999px; transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; box-shadow: 0 8px 30px rgba(124,156,255,.25); }
+    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 12px 40px rgba(124,156,255,.35); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-ghost { border: 1px solid var(--border); border-radius: 999px; color: var(--text); transition: background .15s ease; }
+    .btn-ghost:hover { background: rgba(255,255,255,.08); }
+
+    .view { display: none; }
+    .view.active { display: block; animation: fadeUp .35s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    .option { transition: border-color .12s ease, background .12s ease, transform .12s ease; }
+    .option:hover { transform: translateY(-1px); }
+    .option.selected { border-color: #8ea6ff; background: rgba(124,156,255,.14); }
+
+    .scale-dot { width: 10px; height: 10px; border-radius: 999px; background: rgba(255,255,255,.25); transition: background .15s ease, transform .15s ease; }
+    .scale-dot.on { background: #a5b4fc; transform: scale(1.25); }
+
+    .progress-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #6d8cff, #a97bff); transition: width .3s ease; }
+
+    .badge { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .7rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+
+    .ring-track { stroke: rgba(255,255,255,.1); }
+    .ring-anim { transition: stroke-dashoffset 1s cubic-bezier(.22,1,.36,1); }
+
+    .bar-track { height: 10px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; width: 0; transition: width 1s cubic-bezier(.22,1,.36,1); }
+
+    details > summary { cursor: pointer; list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .chev { transform: rotate(180deg); }
+    .chev { transition: transform .2s ease; }
+
+    .disclaimer-anim { animation: pulseGlow 2.4s ease-in-out infinite; }
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(251,191,36,.25);} 50% { box-shadow: 0 0 0 12px rgba(251,191,36,0);} }
+
+    .typewriter { white-space: pre-wrap; }
+    .caret::after { content: '▍'; margin-left: 2px; animation: blink 1s steps(1) infinite; color: #a5b4fc; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .confetti { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 60; pointer-events: none; border-radius: 2px; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(105vh) rotate(660deg); opacity: .9; } }
+
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 999px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <!-- ===== Crisis banner (always available) ===== -->
+  <div id="crisisBanner" class="hidden fixed inset-x-0 top-0 z-50">
+    <div class="mx-auto mt-3 max-w-3xl mx-4 rounded-2xl border border-red-400/40 bg-red-500/15 backdrop-blur px-4 py-3 text-sm flex items-start gap-3">
+      <span class="text-xl leading-none">🆘</span>
+      <p class="leading-relaxed">
+        Jika Anda atau orang terdekat sedang dalam krisis dan mempertimbangkan untuk melukai diri sendiri,
+        <b>hubungi 119 tekan ext. 8</b> (layanan Kemenkes RI, gratis, 24 jam) atau kunjungi unit gawat darurat terdekat.
+        Anda tidak sendiri — bantuan tersedia sekarang.
+      </p>
+      <button id="crisisClose" class="ml-auto shrink-0 rounded-lg px-2 py-1 hover:bg-white/10" aria-label="Tutup">✕</button>
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 py-6">
+    <!-- ===== Header ===== -->
+    <header class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl brand-gradient grid place-items-center shadow-lg shadow-indigo-500/30">
+          <span class="text-lg">🧠</span>
+        </div>
+        <div>
+          <div class="font-display font-extrabold text-lg leading-tight">Reflecta</div>
+          <div class="text-xs" style="color:var(--muted)">Skrining kesehatan mental &amp; stres</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnCrisis" class="btn-ghost text-xs sm:text-sm px-3 py-2">Butuh bantuan sekarang?</button>
+        <button id="btnSources" class="btn-ghost text-xs sm:text-sm px-3 py-2">Sumber ilmiah</button>
+      </div>
+    </header>
+
+    <!-- ===== View: Landing ===== -->
+    <section id="view-landing" class="view active mt-10 sm:mt-16">
+      <div class="grid lg:grid-cols-2 gap-8 items-center">
+        <div>
+          <span class="badge glass" style="color:#c7d2fe">✨ Berbasis instrumen tervalidasi</span>
+          <h1 class="mt-4 font-display font-extrabold text-4xl sm:text-5xl leading-tight">
+            Kenali kondisi <span class="brand-text">mental &amp; stres</span> Anda — dengan singgah di sains.
+          </h1>
+          <p class="mt-4 text-base sm:text-lg leading-relaxed" style="color:var(--muted)">
+            Reflecta memandu Anda melalui lima instrumen skrining yang umum dipakai di dunia klinis dan penelitian:
+            <b class="text-white/90">WHO-5</b>, <b class="text-white/90">PSS-10</b>, <b class="text-white/90">DASS-21</b>,
+            <b class="text-white/90">GAD-7</b>, dan <b class="text-white/90">PHQ-9</b>. Jawab dengan jujur — hasilnya
+            dirangkum menjadi peta kondisi Anda, lengkap dengan refleksi dari AI.
+          </p>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <button id="btnStart" class="btn-primary px-6 py-3 text-sm sm:text-base">Mulai Pemeriksaan →</button>
+            <a href="#sources" class="btn-ghost px-5 py-3 text-sm">Lihat metodologi</a>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-4 text-xs" style="color:var(--muted)">
+            <span>🔒 Data tidak dikirim ke mana pun tanpa izin Anda</span>
+            <span>⏱️ ± 10 menit</span>
+            <span>🧪 52 pertanyaan terstandar</span>
+          </div>
+        </div>
+
+        <div class="glass rounded-3xl p-6 sm:p-8">
+          <div class="flex items-center justify-between">
+            <h3 class="font-display font-bold">Yang akan Anda isi</h3>
+            <span class="badge" style="background:rgba(52,211,153,.15);color:#6ee7b7">5 instrumen</span>
+          </div>
+          <ul class="mt-4 space-y-3 text-sm">
+            <li class="flex items-start gap-3">
+              <span class="w-8 h-8 shrink-0 rounded-xl grid place-items-center" style="background:rgba(124,156,255,.15)">🌸</span>
+              <div><b>WHO-5 Well-Being Index</b><div class="text-xs" style="color:var(--muted)">Kesejahteraan mental positif (WHO, 1998)</div></div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-8 h-8 shrink-0 rounded-xl grid place-items-center" style="background:rgba(167,139,250,.15)">🌊</span>
+              <div><b>Perceived Stress Scale (PSS-10)</b><div class="text-xs" style="color:var(--muted)">Seberapa berat stres yang Anda rasakan (Cohen, 1983)</div></div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-8 h-8 shrink-0 rounded-xl grid place-items-center" style="background:rgba(248,113,113,.15)">🎭</span>
+              <div><b>DASS-21</b><div class="text-xs" style="color:var(--muted)">Depresi, ansietas &amp; stres (Lovibond &amp; Lovibond, 1995)</div></div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-8 h-8 shrink-0 rounded-xl grid place-items-center" style="background:rgba(251,191,36,.15)">🌀</span>
+              <div><b>GAD-7</b><div class="text-xs" style="color:var(--muted)">Skrining ansietas (Spitzer dkk., 2006)</div></div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-8 h-8 shrink-0 rounded-xl grid place-items-center" style="background:rgba(94,234,212,.15)">🌧️</span>
+              <div><b>PHQ-9</b><div class="text-xs" style="color:var(--muted)">Skrining depresi (Kroenke dkk., 2001)</div></div>
+            </li>
+          </ul>
+          <div class="mt-5 rounded-2xl border border-amber-300/30 p-4 text-xs leading-relaxed disclaimer-anim" style="background:rgba(251,191,36,.08);color:#fde68a">
+            ⚠️ <b>Penting:</b> Reflecta adalah alat <i>skrining</i> untuk edukasi dan refleksi diri —
+            <b>bukan alat diagnosis</b>. Hanya profesional kesehatan mental (psikolog/psikiater) yang dapat menegakkan diagnosis.
+          </div>
+        </div>
+      </div>
+
+      <!-- Methodology / sources -->
+      <div id="sources" class="mt-14 scroll-mt-6">
+        <h2 class="font-display font-bold text-2xl">Metodologi &amp; sumber ilmiah</h2>
+        <p class="mt-2 text-sm max-w-3xl" style="color:var(--muted)">
+          Semua butir pertanyaan, rentang skor, dan kategori interpretasi di bawah ini diambil dari instrumen aslinya
+          dan literatur primer. Reflecta tidak mengubah rumus skoringnya.
+        </p>
+        <div class="mt-6 grid md:grid-cols-2 gap-4" id="sourceCards"><!-- filled by JS --></div>
+      </div>
+    </section>
+
+    <!-- ===== View: Disclaimer ===== -->
+    <section id="view-disclaimer" class="view mt-10 sm:mt-16">
+      <div class="max-w-2xl mx-auto glass rounded-3xl p-6 sm:p-10">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl grid place-items-center text-xl" style="background:rgba(251,191,36,.15)">📋</div>
+          <h2 class="font-display font-bold text-2xl">Sebelum kita mulai</h2>
+        </div>
+        <ul class="mt-6 space-y-4 text-sm leading-relaxed">
+          <li class="flex gap-3"><span>1️⃣</span><div><b>Bukan diagnosis.</b> Hasil skrining <i>tidak</i> sama dengan diagnosis klinis. Angka di layar tidak bisa menggantikan penilaian profesional.</div></li>
+          <li class="flex gap-3"><span>2️⃣</span><div><b>Jawab jujur.</b> Tidak ada jawaban benar/salah, dan tidak ada data yang dikirim ke server mana pun tanpa persetujuan Anda.</div></li>
+          <li class="flex gap-3"><span>3️⃣</span><div><b>Kondisi darurat.</b> Jika Anda sedang mempertimbangkan melukai diri sendiri, jangan menunggu hasil kuis — hubungi <b>119 ext. 8</b> sekarang juga.</div></li>
+          <li class="flex gap-3"><span>4️⃣</span><div><b>Refleksi AI.</b> Ringkasan naratif di akhir dibuat oleh model bahasa (AI) berdasarkan skor Anda. AI bisa keliru; perlakukan sebagai pendapat kedua, bukan keputusan.</div></li>
+          <li class="flex gap-3"><span>5️⃣</span><div><b>Umur 17+.</b> Instrumen ini dirancang untuk dewasa. Jika lebih muda, mintalah pendampingan orang dewasa yang Anda percaya.</div></li>
+        </ul>
+        <label class="mt-8 flex items-start gap-3 cursor-pointer select-none rounded-2xl border p-4" style="border-color:var(--border)">
+          <input id="agreeCheck" type="checkbox" class="mt-1 w-5 h-5 accent-indigo-400" />
+          <span class="text-sm">Saya membaca dan memahami hal di atas, dan ingin melanjutkan secara sadar dan sukarela.</span>
+        </label>
+        <div class="mt-6 flex items-center gap-3">
+          <button id="btnAgree" class="btn-primary px-6 py-3 text-sm opacity-40 pointer-events-none">Lanjut ke pemeriksaan</button>
+          <button id="btnBackLanding" class="btn-ghost px-5 py-3 text-sm">Kembali</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== View: Quiz ===== -->
+    <section id="view-quiz" class="view mt-8 sm:mt-12">
+      <div class="max-w-3xl mx-auto">
+        <!-- progress -->
+        <div class="glass rounded-2xl p-4 sm:p-5">
+          <div class="flex items-center justify-between text-xs" style="color:var(--muted)">
+            <span id="quizInstrumentLabel">—</span>
+            <span id="quizCounter">0 / 0</span>
+          </div>
+          <div class="progress-track mt-2"><div id="quizProgress" class="progress-fill" style="width:0%"></div></div>
+          <div id="instrumentChips" class="mt-3 flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- question card -->
+        <div id="questionCard" class="glass rounded-3xl p-6 sm:p-10 mt-4">
+          <div class="text-xs font-semibold tracking-wider uppercase" id="qInstrument" style="color:#a5b4fc">—</div>
+          <h2 id="qText" class="mt-3 font-display font-bold text-xl sm:text-2xl leading-snug">—</h2>
+          <p id="qContext" class="mt-2 text-sm" style="color:var(--muted)"></p>
+          <div id="optionsWrap" class="mt-7 grid gap-3"></div>
+          <div class="mt-7 flex items-center justify-between">
+            <button id="btnPrev" class="btn-ghost px-5 py-2.5 text-sm">← Kembali</button>
+            <button id="btnNext" class="btn-primary px-6 py-2.5 text-sm opacity-40 pointer-events-none">Lanjut →</button>
+          </div>
+        </div>
+
+        <div class="mt-4 text-center">
+          <button id="btnQuitQuiz" class="text-xs underline" style="color:var(--muted)">Berhenti &amp; kembali ke awal</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== View: Results ===== -->
+    <section id="view-results" class="view mt-8 sm:mt-12">
+      <!-- crisis alert (conditional) -->
+      <div id="crisisAlert" class="hidden rounded-3xl border border-red-400/40 p-6 sm:p-8" style="background:rgba(248,113,113,.1)">
+        <div class="flex items-start gap-4">
+          <span class="text-3xl">🆘</span>
+          <div>
+            <h3 class="font-display font-bold text-xl">Satu jawaban Anda perlu perhatian segera</h3>
+            <p class="mt-2 text-sm leading-relaxed">
+              Anda menandai bahwa dalam 2 minggu terakhir Anda pernah memikirkan untuk mengakhiri hidup atau melukai diri.
+              Terima kasih sudah jujur — itu buta keberanian. Apapun skor lainnya, ini yang paling penting:
+              <b>Anda tidak harus melewati ini sendiri.</b>
+            </p>
+            <div class="mt-4 flex flex-wrap gap-3 text-sm">
+              <a href="tel:119" class="btn-primary px-5 py-2.5">📞 Telepon 119 → ext. 8</a>
+              <a href="https://www.intothelightid.org/tentang-bunuh-diri/hotline-bunuh-diri-di-indonesia/" target="_blank" rel="noopener" class="btn-ghost px-5 py-2.5">Daftar hotline lainnya</a>
+            </div>
+            <p class="mt-3 text-xs" style="color:var(--muted)">119 ext. 8 adalah layanan SEJIWA/Healing119 dari Kementerian Kesehatan RI — gratis dan tersedia 24 jam. Dalam keadaan gawat, segera ke IGD rumah sakit terdekat.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 class="font-display font-extrabold text-3xl sm:text-4xl">Peta kondisi Anda</h2>
+          <p class="mt-2 text-sm" style="color:var(--muted)">Berikut ringkasan berdasarkan jawaban Anda. Ingat: ini skrining, bukan diagnosis.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnCopySummary" class="btn-ghost px-4 py-2.5 text-xs">📋 Salin ringkasan</button>
+          <button id="btnRestart" class="btn-ghost px-4 py-2.5 text-xs">↺ Ulangi</button>
+        </div>
+      </div>
+
+      <!-- overall gauge -->
+      <div class="glass rounded-3xl p-6 sm:p-10 mt-6 grid md:grid-cols-[auto,1fr] gap-8 items-center">
+        <div class="relative mx-auto">
+          <svg width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Indeks kesejahteraan keseluruhan">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#34d399"/><stop offset="55%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f87171"/>
+              </linearGradient>
+            </defs>
+            <circle cx="120" cy="120" r="100" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="16"/>
+            <circle id="gaugeArc" class="ring-anim" cx="120" cy="120" r="100" fill="none" stroke="url(#gaugeGrad)" stroke-width="16"
+                    stroke-linecap="round" stroke-dasharray="628.3" stroke-dashoffset="628.3" transform="rotate(-90 120 120)"/>
+          </svg>
+          <div class="absolute inset-0 grid place-items-center text-center">
+            <div>
+              <div id="overallValue" class="font-display font-extrabold text-5xl">–</div>
+              <div class="text-xs mt-1" style="color:var(--muted)">indeks kesejahteraan<br>(0–100)</div>
+              <div id="overallBadge" class="badge mt-3" style="background:rgba(255,255,255,.1)">—</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-display font-bold text-xl">Apa arti angka ini?</h3>
+          <p id="overallExplain" class="mt-3 text-sm leading-relaxed" style="color:var(--muted)">—</p>
+          <div class="mt-4 grid grid-cols-3 gap-3 text-center text-xs">
+            <div class="rounded-2xl border p-3" style="border-color:var(--border)"><div class="text-lg font-bold" style="color:var(--ok)">Tinggi</div><div style="color:var(--muted)">70–100</div></div>
+            <div class="rounded-2xl border p-3" style="border-color:var(--border)"><div class="text-lg font-bold" style="color:var(--warn)">Sedang</div><div style="color:var(--muted)">51–69</div></div>
+            <div class="rounded-2xl border p-3" style="border-color:var(--border)"><div class="text-lg font-bold" style="color:var(--alert)">Rendah</div><div style="color:var(--muted)">≤ 50</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- per-instrument cards -->
+      <div id="resultCards" class="mt-6 grid md:grid-cols-2 gap-4"></div>
+
+      <!-- AI section -->
+      <div class="glass rounded-3xl p-6 sm:p-10 mt-6">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h3 class="font-display font-bold text-xl">🤖 Refleksi dari AI</h3>
+            <p class="text-xs mt-1" style="color:var(--muted)">Narasi pendamping — bukan diagnosis, bukan pengganti profesional.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="btnAI" class="btn-primary px-5 py-2.5 text-sm">Buat refleksi</button>
+            <button id="btnAISettings" class="btn-ghost px-4 py-2.5 text-sm" title="Pengaturan model">⚙️</button>
+          </div>
+        </div>
+        <div id="aiBox" class="mt-5 rounded-2xl border p-5 text-sm leading-relaxed hidden" style="border-color:var(--border)"></div>
+      </div>
+
+      <!-- action plan -->
+      <div class="glass rounded-3xl p-6 sm:p-10 mt-6">
+        <h3 class="font-display font-bold text-xl">Langkah kecil yang bisa Anda coba</h3>
+        <p class="text-xs mt-1" style="color:var(--muted)">Saran umum berbasis literatur kesehatan mental — sesuaikan dengan kondisi Anda.</p>
+        <div id="actionItems" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
+        <div class="mt-6 rounded-2xl border p-4 text-xs leading-relaxed" style="border-color:var(--border);color:var(--muted)">
+          💡 <b>Kapan harus ke profesional?</b> Jika gejala menetap &gt;2 minggu, mengganggu kerja/kuliah/tidur/relasi,
+          atau Anda merasa tidak sanggup menghadapinya sendiri — pertimbangkan konsultasi ke psikolog atau psikiater.
+          Di Indonesia, layanan publik tersedia via puskesmas, kampus/HRD, atau <b>119 ext. 8</b>.
+        </div>
+      </div>
+
+      <div class="mt-10 mb-6 text-center text-xs" style="color:var(--muted)">
+        Reflecta • alat skrining edukatif • bukan alat diagnosis • data tetap di perangkat Anda
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Modal: Sources ===== -->
+  <div id="sourcesModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4" style="background:rgba(5,8,20,.7)">
+    <div class="glass rounded-3xl max-w-2xl w-full p-6 sm:p-8 max-h-[80vh] overflow-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display font-bold text-xl">📚 Sumber ilmiah</h3>
+        <button id="sourcesClose" class="btn-ghost px-3 py-1.5 text-sm">✕</button>
+      </div>
+      <div id="sourcesModalBody" class="mt-4 space-y-4 text-sm leading-relaxed"></div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: AI settings ===== -->
+  <div id="aiModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4" style="background:rgba(5,8,20,.7)">
+    <div class="glass rounded-3xl max-w-lg w-full p-6 sm:p-8">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display font-bold text-xl">⚙️ Pengaturan AI</h3>
+        <button id="aiModalClose" class="btn-ghost px-3 py-1.5 text-sm">✕</button>
+      </div>
+      <p class="mt-3 text-xs leading-relaxed" style="color:var(--muted)">
+        Refleksi AI memakai API yang kompatibel OpenAI (mis. OpenAI, OpenRouter, Groq, Z.ai/GLM, vLLM lokal).
+        Kunci API disimpan <b>hanya di peramban Anda</b> (localStorage) dan dikirim langsung ke penyedia yang Anda pilih.
+        Jika dikosongkan, Reflecta memakai ringkasan offline non-AI.
+      </p>
+      <label class="block mt-5 text-xs font-semibold" style="color:var(--muted)">Base URL</label>
+      <input id="aiBaseUrl" type="text" placeholder="https://api.openai.com/v1" class="mt-1 w-full rounded-xl bg-black/30 border px-3 py-2.5 text-sm outline-none focus:border-indigo-400" style="border-color:var(--border)" />
+      <label class="block mt-4 text-xs font-semibold" style="color:var(--muted)">API key</label>
+      <input id="aiApiKey" type="password" placeholder="sk-..." class="mt-1 w-full rounded-xl bg-black/30 border px-3 py-2.5 text-sm outline-none focus:border-indigo-400" style="border-color:var(--border)" />
+      <label class="block mt-4 text-xs font-semibold" style="color:var(--muted)">Model</label>
+      <input id="aiModel" type="text" placeholder="gpt-4o-mini / glm-4-flash / llama-3.1-8b-instant" class="mt-1 w-full rounded-xl bg-black/30 border px-3 py-2.5 text-sm outline-none focus:border-indigo-400" style="border-color:var(--border)" />
+      <div class="mt-6 flex justify-end gap-2">
+        <button id="aiSave" class="btn-primary px-5 py-2.5 text-sm">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/instruments.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
