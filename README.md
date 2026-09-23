@@ -1,7 +1,7 @@
 # 🧠 Reflecta — Alat Skrining Kesehatan Mental & Stres
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Unit Tests](https://github.com/Elwyun/Refelecta/actions/workflows/ci.yml/badge.svg)](https://github.com/Elwyun/Refelecta/actions/workflows/ci.yml)
+[![Unit Tests](https://github.com/Elwyun/Reflecta/actions/workflows/ci.yml/badge.svg)](https://github.com/Elwyun/Reflecta/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/node-%E2%89%A518-brightgreen)](https://nodejs.org)
 
 Reflecta memandu pengguna melalui **lima instrumen skrining tervalidasi** dan merangkum hasilnya
